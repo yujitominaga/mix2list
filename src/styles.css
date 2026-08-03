@@ -1,0 +1,249 @@
+/* ============================================================
+   mix2list — visual system
+   Direction: dark, minimal, typographic. Reference moodboard:
+   amra (whitespace, type contrast, transparent white steps),
+   Birmingham Depot (layered non-black darks, tiny functional
+   accents, mono numerals, rules replaced by space).
+   ============================================================ */
+
+:root {
+  /* Layered darks — never pure black (moodboard: "完全な黒じゃない") */
+  --bg:        #161619;
+  --surface:   #1c1c20;
+  --surface-2: #232329;
+  --hover:     #2a2a31;
+
+  /* Warm-white text in transparency steps (amra: white transparency) */
+  --tx:        #f3f2ef;
+  --tx-70:     rgba(243, 242, 239, 0.68);
+  --tx-45:     rgba(243, 242, 239, 0.45);
+  --tx-28:     rgba(243, 242, 239, 0.28);
+  --tx-14:     rgba(243, 242, 239, 0.14);
+
+  /* Accents — tiny areas only, functional like depot badges */
+  --go:    #56d364;  /* live / success */
+  --amber: #e8b64c;  /* BPM / energy */
+  --coral: #f0674f;  /* key / attention */
+  --violet:#a89bff;  /* harmonic */
+
+  /* CTA — acid chartreuse, the hue midpoint between Spotify green and
+     YouTube red. Used only on primary action buttons. */
+  --cta:      #d4ff1a;
+  --cta-hi:   #e0ff45;  /* hover */
+  --cta-tx:   #1a2400;  /* text on CTA — dark chartreuse-black, not pure #000 */
+
+  /* Hairlines — used sparingly; space is the primary divider */
+  --rule: rgba(243, 242, 239, 0.09);
+
+  --font-display: "helvetica-now-display", "Neue Haas Grotesk Display", "Inter", "Helvetica Neue", Arial, sans-serif;
+  --font-body:    "helvetica-now-text", "Inter", "Zen Kaku Gothic New", system-ui, sans-serif;
+  --font-jp:      "Zen Kaku Gothic New", "helvetica-now-text", sans-serif;
+  --font-mono:    "Space Mono", "JetBrains Mono", ui-monospace, monospace;
+
+  --ease: cubic-bezier(0.22, 1, 0.36, 1);
+  --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+
+  --maxw: 940px;
+}
+
+* { box-sizing: border-box; }
+
+html, body, #root {
+  margin: 0;
+  min-height: 100%;
+  background: var(--bg);
+  color: var(--tx);
+  font-family: var(--font-body);
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+::selection { background: rgba(168, 155, 255, 0.28); }
+
+h1, h2, h3 {
+  font-family: var(--font-display);
+  font-weight: 500;
+  letter-spacing: -0.02em;
+  margin: 0;
+}
+
+button { font-family: inherit; cursor: pointer; border: none; background: none; color: inherit; }
+input { font-family: inherit; }
+a { color: inherit; }
+
+:focus-visible {
+  outline: 1.5px solid var(--violet);
+  outline-offset: 3px;
+  border-radius: 2px;
+}
+
+.app-shell {
+  max-width: var(--maxw);
+  margin: 0 auto;
+  padding: 32px 32px 120px;
+  position: relative;
+  z-index: 1;
+}
+
+/* ---- top bar ---- */
+.top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: 40px;
+  margin-bottom: 8px;
+}
+
+.back-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--tx-45);
+  font-size: 13px;
+  letter-spacing: 0.01em;
+  transition: color 0.2s var(--ease);
+}
+.back-btn:hover { color: var(--tx); }
+.back-btn .arw { transition: transform 0.25s var(--ease); }
+.back-btn:hover .arw { transform: translateX(-3px); }
+
+/* language toggle + connect cluster */
+.top-right { display: flex; align-items: center; gap: 18px; }
+
+.lang-toggle {
+  display: inline-flex;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 0.06em;
+  color: var(--tx-28);
+  gap: 8px;
+}
+.lang-toggle button { color: var(--tx-28); transition: color 0.2s var(--ease); padding: 2px 0; }
+.lang-toggle button.active { color: var(--tx); }
+.lang-toggle button:hover { color: var(--tx-70); }
+.lang-toggle .sep { color: var(--tx-14); }
+
+.connect-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12.5px;
+  letter-spacing: 0.01em;
+  color: var(--tx-70);
+  padding: 8px 0;
+  transition: color 0.2s var(--ease);
+}
+.connect-btn:hover { color: var(--tx); }
+.connect-btn .status-dot {
+  width: 6px; height: 6px; border-radius: 50%;
+  background: var(--tx-28);
+  transition: background 0.3s var(--ease), box-shadow 0.3s var(--ease);
+}
+.connect-btn.on .status-dot { background: var(--go); box-shadow: 0 0 8px rgba(86, 211, 100, 0.6); }
+
+/* ---- buttons ---- */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  font-size: 14px;
+  font-weight: 500;
+  letter-spacing: 0.01em;
+  padding: 13px 26px;
+  border-radius: 2px;
+  transition: background 0.2s var(--ease), color 0.2s var(--ease), transform 0.12s var(--ease), opacity 0.2s var(--ease);
+}
+.btn:active { transform: translateY(1px); }
+.btn[disabled] { opacity: 1; cursor: not-allowed; }
+.btn-primary[disabled] { background: var(--surface-2); color: var(--tx-28); }
+
+/* primary = acid-chartreuse CTA */
+.btn-primary { background: var(--cta); color: var(--cta-tx); font-weight: 600; }
+.btn-primary:hover:not([disabled]) { background: var(--cta-hi); }
+
+.btn-ghost { color: var(--tx-70); padding-left: 0; padding-right: 0; }
+.btn-ghost:hover:not([disabled]) { color: var(--tx); }
+
+.btn-outline { border: 1px solid var(--tx-14); color: var(--tx); }
+.btn-outline:hover:not([disabled]) { border-color: var(--tx-45); }
+
+/* ---- mono numerals ---- */
+.mono { font-family: var(--font-mono); font-feature-settings: "tnum" 1; }
+
+/* ---- tiny status badge (depot-style) ---- */
+.badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 26px;
+  height: 20px;
+  padding: 0 6px;
+  border-radius: 3px;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 400;
+  letter-spacing: 0.02em;
+  color: var(--bg);
+}
+.badge-amber { background: var(--amber); }
+.badge-coral { background: var(--coral); }
+.badge-violet { background: var(--violet); }
+.badge-go { background: var(--go); }
+.badge-dim { background: var(--surface-2); color: var(--tx-45); }
+
+/* ---- snackbar ---- */
+.snackbar {
+  position: fixed;
+  left: 50%;
+  bottom: 32px;
+  transform: translateX(-50%) translateY(140%);
+  background: var(--surface-2);
+  color: var(--tx);
+  padding: 15px 18px 15px 20px;
+  border-radius: 4px;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  box-shadow: 0 18px 50px rgba(0, 0, 0, 0.55);
+  z-index: 50;
+  transition: transform 0.5s var(--ease-out);
+  min-width: 300px;
+  max-width: calc(100vw - 48px);
+  font-size: 13.5px;
+}
+.snackbar.show { transform: translateX(-50%) translateY(0); }
+.snackbar-accent {
+  width: 3px; align-self: stretch; border-radius: 2px;
+  background: var(--tx-28);
+  transition: background 0.3s var(--ease);
+}
+.snackbar.ready .snackbar-accent { background: var(--go); }
+.snackbar-msg { flex: 1; }
+.snackbar-action {
+  font-size: 12.5px; font-weight: 500; color: var(--go);
+  white-space: nowrap; padding: 4px 0;
+  transition: opacity 0.2s var(--ease);
+}
+.snackbar-action:hover { opacity: 0.75; }
+
+/* spinner as thin ring */
+.spinner {
+  width: 14px; height: 14px;
+  border: 1.5px solid var(--tx-14);
+  border-top-color: var(--tx-70);
+  border-radius: 50%;
+  animation: spin 0.7s linear infinite;
+  flex: none;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+
+.jp { font-family: var(--font-jp); }
+
+@media (max-width: 600px) {
+  .app-shell { padding: 20px 18px 100px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  * { animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; }
+}
