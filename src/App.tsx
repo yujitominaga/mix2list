@@ -1,4 +1,4 @@
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useRef, useState, useCallback } from "react";
 import "./styles.css";
 import "./screens/screens.css";
 
@@ -34,10 +34,13 @@ export default function App() {
   const showSnack = useCallback((s: Omit<SnackState, "show">) => setSnack({ ...s, show: true }), []);
   const hideSnack = useCallback(() => setSnack((s) => ({ ...s, show: false })), []);
 
+  const loginHandled = useRef(false);
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
     const code = params.get("code");
     if (code) {
+      if (loginHandled.current) return;
+      loginHandled.current = true;
       completeLogin(code)
         .then(() => {
           setIsAuthed(true);

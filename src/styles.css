@@ -35,9 +35,9 @@
   /* Hairlines — used sparingly; space is the primary divider */
   --rule: rgba(243, 242, 239, 0.09);
 
-  --font-display: "helvetica-now-display", "Neue Haas Grotesk Display", "Inter", "Helvetica Neue", Arial, sans-serif;
-  --font-body:    "helvetica-now-text", "Inter", "Zen Kaku Gothic New", system-ui, sans-serif;
-  --font-jp:      "Zen Kaku Gothic New", "helvetica-now-text", sans-serif;
+  --font-display: "helvetica-neue-lt-pro", "Neue Haas Grotesk Display", "Inter", "Helvetica Neue", Arial, sans-serif;
+  --font-body:    "helvetica-neue-lt-pro", "Inter", "Zen Kaku Gothic New", system-ui, sans-serif;
+  --font-jp:      "Zen Kaku Gothic New", "helvetica-neue-lt-pro", sans-serif;
   --font-mono:    "Space Mono", "JetBrains Mono", ui-monospace, monospace;
 
   --ease: cubic-bezier(0.22, 1, 0.36, 1);
@@ -159,7 +159,7 @@ a { color: inherit; }
 .btn-primary[disabled] { background: var(--surface-2); color: var(--tx-28); }
 
 /* primary = acid-chartreuse CTA */
-.btn-primary { background: var(--cta); color: var(--cta-tx); font-weight: 600; }
+.btn-primary { background: var(--cta); color: var(--cta-tx); font-weight: 700; }
 .btn-primary:hover:not([disabled]) { background: var(--cta-hi); }
 
 .btn-ghost { color: var(--tx-70); padding-left: 0; padding-right: 0; }

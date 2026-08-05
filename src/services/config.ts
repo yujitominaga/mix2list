@@ -28,7 +28,7 @@ export const config = {
   gemini: {
     // Only read in "direct" mode. In "proxy" mode this is intentionally unused.
     apiKey: import.meta.env.VITE_GEMINI_API_KEY as string | undefined,
-    model: (import.meta.env.VITE_GEMINI_MODEL as string) || "gemini-2.5-flash",
+    model: (import.meta.env.VITE_GEMINI_MODEL as string) || "gemini-3.6-flash",
   },
 
   spotify: {

@@ -27,13 +27,16 @@ surface (not a border). Keep it.
 
 ## Type
 
-- Display: `helvetica-now-display` (Adobe Fonts kit) → falls back to Inter.
-- Body: `helvetica-now-text` → Inter → Zen Kaku Gothic New (JP).
+- Display: `helvetica-neue-lt-pro` (Adobe Fonts kit) → falls back to Inter.
+- Body: `helvetica-neue-lt-pro` → Inter → Zen Kaku Gothic New (JP).
 - Mono: Space Mono (numerals, labels, IDs).
 - JP text uses `.jp` / `--font-jp` = Zen Kaku Gothic New.
+- Available weights: Ultra Light 100, Light 300, Roman 400, Medium 500, Bold 700.
+  There is no 600 — round up to 700 where a semibold weight was wanted (e.g.
+  the CTA buttons).
 
-The Adobe kit `<link>` goes in `index.html` (placeholder comment marks the spot).
-Once pasted, `helvetica-now-*` wins automatically — no other change needed.
+The Adobe kit `<link>` is pasted in `index.html`. `helvetica-neue-lt-pro` wins
+automatically over the Inter fallback — no other change needed.
 
 ## Architecture
 
@@ -79,9 +82,11 @@ changes so we don't repeat work already tried and rejected.
 - **Track ordering is our own Camelot+BPM heuristic, on purpose.** Spotify won't
   reorder via API, so `reorder.ts` is the app's real value-add — not a stopgap
   to replace later with a Spotify feature. Improve it; don't remove it.
-- **Helvetica Now was chosen to approximate Spotify's Circular** (non-open-source).
-  Not arbitrary. If swapping fonts, keep that intent — a geometric, Circular-like
-  face. Manrope was the earlier free stand-in; Inter is the current fallback.
+- **Helvetica Neue LT Pro was chosen to approximate Spotify's Circular**
+  (non-open-source). Not arbitrary. If swapping fonts, keep that intent — a
+  geometric, Circular-like face. Manrope was an earlier free stand-in; Inter
+  is the current fallback. (Was Helvetica Now Display/Text until 2026-08-05,
+  swapped to Helvetica Neue LT Pro on the same Adobe Fonts kit approach.)
 - **BPM/key come from Gemini because Spotify's audio-features endpoint is retired**
   for new apps. Their being estimates is expected, not a bug — keep them marked
   as estimates in the UI.

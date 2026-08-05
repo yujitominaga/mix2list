@@ -8,5 +8,11 @@ export default defineConfig(({ mode }) => {
   return {
     base: env.VITE_BASE || "/",
     plugins: [react()],
+    // Spotify's redirect URI is fixed to 127.0.0.1 (its loopback requirement).
+    // "localhost" can resolve to ::1 only on Windows, leaving 127.0.0.1
+    // unbound and the OAuth callback connection refused — bind explicitly.
+    server: {
+      host: "127.0.0.1",
+    },
   };
 });
