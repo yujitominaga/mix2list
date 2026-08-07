@@ -55,6 +55,19 @@ export default function App() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  // Prefetch Spotify matches (for album art) as soon as the result list is
+  // shown, instead of waiting for "Generate playlist". Idempotent: matchTracks
+  // skips tracks that already carry a matchState.
+  const artFetched = useRef(false);
+  useEffect(() => {
+    if (screen !== "result" || !analysis || !isAuthed) return;
+    if (artFetched.current) return;
+    artFetched.current = true;
+    matchTracks(analysis.tracks)
+      .then((matched) => setAnalysis((prev) => (prev ? { ...prev, tracks: matched } : prev)))
+      .catch(() => {});
+  }, [screen, analysis, isAuthed]);
+
   function persistState(v: VideoInfo | null, a: AnalysisResult | null) {
     if (v && a) sessionStorage.setItem("m2l.work", JSON.stringify({ v, a }));
   }
@@ -77,6 +90,7 @@ export default function App() {
 
   const handleAnalyze = useCallback(async () => {
     if (!video) return;
+    artFetched.current = false;
     setScreen("analyzing"); setPhase("analyzing");
     try {
       const result = await analyzeVideo(video.url);
@@ -137,31 +151,34 @@ export default function App() {
   }, [hideSnack]);
 
   return (
-    <div className="app-shell">
-      <div className="top">
-        {screen === "home" ? <span /> : (
-          <button className="back-btn" onClick={screen === "result" ? goHome : () => setScreen("home")}>
-            <span className="arw" aria-hidden>←</span>
-            {screen === "result" ? t("nav.newMix") : t("nav.back")}
-          </button>
-        )}
+    <>
+      <div className="topbar">
+        <div className="top">
+          {screen === "home" ? <span /> : (
+            <button className="back-btn" onClick={screen === "result" ? goHome : () => setScreen("home")}>
+              <span className="arw" aria-hidden>←</span>
+              {screen === "result" ? t("nav.newMix") : t("nav.back")}
+            </button>
+          )}
 
-        <div className="top-right">
-          <div className="lang-toggle" role="group" aria-label="Language">
-            <button className={lang === "en" ? "active" : ""} onClick={() => setLang("en")}>EN</button>
-            <span className="sep">/</span>
-            <button className={lang === "ja" ? "active" : ""} onClick={() => setLang("ja")}>JA</button>
+          <div className="top-right">
+            <div className="lang-toggle" role="group" aria-label="Language">
+              <button className={lang === "en" ? "active" : ""} onClick={() => setLang("en")}>EN</button>
+              <span className="sep">/</span>
+              <button className={lang === "ja" ? "active" : ""} onClick={() => setLang("ja")}>JA</button>
+            </div>
+            <button
+              className={`connect-btn${isAuthed ? " on" : ""}`}
+              onClick={isAuthed ? () => { clearTokens(); setIsAuthed(false); } : handleConnectSpotify}
+            >
+              <span className="status-dot" />
+              {isAuthed ? t("nav.connected") : t("nav.connect")}
+            </button>
           </div>
-          <button
-            className={`connect-btn${isAuthed ? " on" : ""}`}
-            onClick={isAuthed ? () => { clearTokens(); setIsAuthed(false); } : handleConnectSpotify}
-          >
-            <span className="status-dot" />
-            {isAuthed ? t("nav.connected") : t("nav.connect")}
-          </button>
         </div>
       </div>
 
+      <div className="app-shell">
       {screen === "home" && <Home onSubmit={handleUrl} />}
       {screen === "preview" && video && <Preview video={video} onAnalyze={handleAnalyze} />}
       {screen === "analyzing" && <Analyzing phase={phase} foundCount={analysis?.tracks.length} />}
@@ -172,6 +189,7 @@ export default function App() {
 
       <Snackbar show={snack.show} message={snack.message} loading={snack.loading}
         ready={snack.ready} actionLabel={snack.actionLabel} onAction={snack.onAction} />
-    </div>
+      </div>
+    </>
   );
 }

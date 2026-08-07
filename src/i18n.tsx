@@ -25,9 +25,10 @@ const DICT: Dict = {
   "nav.connected": { en: "Connected", ja: "接続済み" },
 
   "preview.analyze": { en: "Analyze", ja: "解析する" },
+  "preview.watch": { en: "Watch on YouTube", ja: "YouTubeで観る" },
   "preview.hint": {
-    en: "Play to check the video before analyzing. Longer mixes take longer.",
-    ja: "解析前に動画を確認できます。ミックスが長いほど解析に時間がかかります。",
+    en: "Check the video on YouTube before analyzing. Longer mixes take longer.",
+    ja: "解析前にYouTubeで動画を確認できます。ミックスが長いほど解析に時間がかかります。",
   },
 
   "analyzing.step1": { en: "Analyzing audio and tracklist", ja: "音声とトラックリストを解析中" },

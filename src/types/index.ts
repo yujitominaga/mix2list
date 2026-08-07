@@ -30,6 +30,7 @@ export interface Track {
   // Spotify match, filled in during the "generate" step
   spotifyUri?: string;
   matchState?: "unmatched" | "matched" | "notfound";
+  albumArt?: string; // small Spotify album image, once matched
 
   // Recommended mix transition INTO this track from the previous one.
   // Display-only: Spotify has no public API to apply these.

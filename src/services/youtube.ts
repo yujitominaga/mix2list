@@ -23,10 +23,6 @@ export function thumbnailUrl(videoId: string): string {
   return `https://img.youtube.com/vi/${videoId}/maxresdefault.jpg`;
 }
 
-export function embedUrl(videoId: string): string {
-  return `https://www.youtube.com/embed/${videoId}?autoplay=1&mute=1&controls=1&rel=0`;
-}
-
 /**
  * Fetch title + channel via YouTube's public oEmbed endpoint.
  * No API key required, and it's CORS-enabled.

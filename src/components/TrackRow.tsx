@@ -21,6 +21,11 @@ export function TrackRow({ track }: { track: Track }) {
   return (
     <div className="trow">
       <div className="trow-idx mono">{String(track.order).padStart(2, "0")}</div>
+      {track.albumArt ? (
+        <img className="trow-art" src={track.albumArt} alt="" />
+      ) : (
+        <div className="trow-art trow-art-empty" aria-hidden />
+      )}
       <div className="trow-main">
         <div className="trow-title">
           {track.title}

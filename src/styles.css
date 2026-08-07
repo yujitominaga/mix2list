@@ -80,12 +80,16 @@ a { color: inherit; }
 .app-shell {
   max-width: var(--maxw);
   margin: 0 auto;
-  padding: 32px 32px 120px;
+  padding: 0 32px 120px;
   position: relative;
   z-index: 1;
 }
 
-/* ---- top bar ---- */
+/* ---- top bar — full browser width, content stays at --maxw inside it ---- */
+.topbar {
+  width: 100%;
+  padding: 32px 32px 0;
+}
 .top {
   display: flex;
   align-items: center;

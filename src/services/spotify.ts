@@ -32,10 +32,23 @@ export async function getCurrentUser(): Promise<SpotifyUser> {
   return res.json();
 }
 
+interface SpotifyImage {
+  url: string;
+  width: number;
+  height: number;
+}
+
 interface SearchHit {
   uri: string;
   durationMs: number;
   album?: string;
+  albumArt?: string;
+}
+
+/** Smallest available image — a list thumbnail doesn't need the 640px one. */
+function smallestImage(images?: SpotifyImage[]): string | undefined {
+  if (!images?.length) return undefined;
+  return [...images].sort((a, b) => a.width - b.width)[0].url;
 }
 
 /** Best-effort match of one track by title+artist. */
@@ -51,12 +64,26 @@ async function searchTrack(title: string, artist: string): Promise<SearchHit | n
     const data2 = await res2.json();
     const item2 = data2?.tracks?.items?.[0];
     if (!item2) return null;
-    return { uri: item2.uri, durationMs: item2.duration_ms, album: item2.album?.name };
+    return {
+      uri: item2.uri,
+      durationMs: item2.duration_ms,
+      album: item2.album?.name,
+      albumArt: smallestImage(item2.album?.images),
+    };
   }
-  return { uri: item.uri, durationMs: item.duration_ms, album: item.album?.name };
+  return {
+    uri: item.uri,
+    durationMs: item.duration_ms,
+    album: item.album?.name,
+    albumArt: smallestImage(item.album?.images),
+  };
 }
 
-/** Resolve every track to a Spotify URI. Mutates copies, returns new array. */
+/**
+ * Resolve every track to a Spotify URI. Mutates copies, returns new array.
+ * Tracks that already carry a matchState (from an earlier pass, e.g. the
+ * Result screen's art prefetch) are left as-is instead of re-searched.
+ */
 export async function matchTracks(
   tracks: Track[],
   onProgress?: (done: number, total: number) => void
@@ -64,6 +91,11 @@ export async function matchTracks(
   const out: Track[] = [];
   for (let i = 0; i < tracks.length; i++) {
     const t = tracks[i];
+    if (t.matchState === "matched" || t.matchState === "notfound") {
+      out.push(t);
+      onProgress?.(i + 1, tracks.length);
+      continue;
+    }
     try {
       const hit = await searchTrack(t.title, t.artist);
       out.push(
@@ -73,6 +105,7 @@ export async function matchTracks(
               spotifyUri: hit.uri,
               lengthSec: Math.round(hit.durationMs / 1000),
               album: t.album ?? hit.album,
+              albumArt: hit.albumArt,
               matchState: "matched",
             }
           : { ...t, matchState: "notfound" }

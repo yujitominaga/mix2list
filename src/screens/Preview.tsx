@@ -1,19 +1,28 @@
-import { embedUrl } from "../services/youtube";
+import { thumbnailWithFallback } from "../services/youtube";
 import type { VideoInfo } from "../types";
 import { useI18n } from "../i18n";
 
 export function Preview({ video, onAnalyze }: { video: VideoInfo; onAnalyze: () => void }) {
   const { t } = useI18n();
+  const { primary, fallback } = thumbnailWithFallback(video.videoId);
   return (
     <div className="preview">
-      <div className="preview-frame">
-        <iframe
-          src={embedUrl(video.videoId)}
-          title={video.title}
-          allow="autoplay; encrypted-media"
-          allowFullScreen
+      <a
+        className="preview-frame"
+        href={video.url}
+        target="_blank"
+        rel="noopener noreferrer"
+        aria-label={t("preview.watch")}
+      >
+        <img
+          src={primary}
+          alt={video.title}
+          onError={(e) => {
+            if (e.currentTarget.src !== fallback) e.currentTarget.src = fallback;
+          }}
         />
-      </div>
+        <span className="preview-play" aria-hidden>▶</span>
+      </a>
       <div className="preview-meta">
         <div style={{ minWidth: 0 }}>
           <h2 className="preview-vtitle">{video.title}</h2>

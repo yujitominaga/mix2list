@@ -78,6 +78,7 @@ export function Result({ video, analysis, isAuthed, generating, onGenerate, onCo
       <div className="tracklist">
         <div className="tl-head">
           <span>#</span>
+          <span aria-hidden />
           <span>{t("col.title")}</span>
           <span>{t("col.bpm")}</span>
           <span>{t("col.key")}</span>
