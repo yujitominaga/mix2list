@@ -1,7 +1,55 @@
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { extractVideoId } from "../services/youtube";
 import { assertConfigured } from "../services/config";
 import { useI18n } from "../i18n";
+
+/** Full-screen looping backdrop with a rough analog treatment: RGB channel
+ * split (SVG filter), scanlines, film grain, and a vignette/scrim so the
+ * wordmark and form stay readable over it. Rendered at the App root (not
+ * nested inside .app-shell) so its negative z-index actually lands behind
+ * the topbar instead of behind app-shell's own content only. */
+export function HomeBackdrop() {
+  const videoRef = useRef<HTMLVideoElement>(null);
+
+  useEffect(() => {
+    const reduce = window.matchMedia?.("(prefers-reduced-motion: reduce)").matches;
+    if (reduce) videoRef.current?.pause();
+  }, []);
+
+  return (
+    <>
+      <svg width="0" height="0" style={{ position: "absolute" }} aria-hidden>
+        <filter id="m2l-chroma">
+          <feColorMatrix in="SourceGraphic" type="matrix"
+            values="1 0 0 0 0  0 0 0 0 0  0 0 0 0 0  0 0 0 1 0" result="r" />
+          <feOffset in="r" dx="-2" dy="0" result="r-off" />
+          <feColorMatrix in="SourceGraphic" type="matrix"
+            values="0 0 0 0 0  0 1 0 0 0  0 0 0 0 0  0 0 0 1 0" result="g" />
+          <feColorMatrix in="SourceGraphic" type="matrix"
+            values="0 0 0 0 0  0 0 0 0 0  0 0 1 0 0  0 0 0 1 0" result="b" />
+          <feOffset in="b" dx="2" dy="0" result="b-off" />
+          <feBlend in="r-off" in2="g" mode="screen" result="rg" />
+          <feBlend in="rg" in2="b-off" mode="screen" />
+        </filter>
+      </svg>
+      <video
+        ref={videoRef}
+        className="home-bgvideo"
+        src={`${import.meta.env.BASE_URL}dj-play-03.mp4`}
+        autoPlay
+        muted
+        loop
+        playsInline
+        disablePictureInPicture
+        aria-hidden
+      />
+      <div className="home-bg-vignette" aria-hidden />
+      <div className="home-bg-scan" aria-hidden />
+      <div className="home-bg-grain" aria-hidden />
+      <div className="home-bg-scrim" aria-hidden />
+    </>
+  );
+}
 
 export function Home({ onSubmit }: { onSubmit: (url: string) => void }) {
   const [url, setUrl] = useState("");

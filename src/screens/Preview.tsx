@@ -24,8 +24,8 @@ export function Preview({ video, onAnalyze }: { video: VideoInfo; onAnalyze: () 
         <span className="preview-play" aria-hidden>▶</span>
       </a>
       <div className="preview-meta">
-        <div style={{ minWidth: 0 }}>
-          <h2 className="preview-vtitle">{video.title}</h2>
+        <div className="preview-copy">
+          <h2 className="preview-vtitle" title={video.title}>{video.title}</h2>
           <p className="preview-vchan">{video.channel}</p>
         </div>
         <button className="btn btn-primary" onClick={onAnalyze}>{t("preview.analyze")}</button>

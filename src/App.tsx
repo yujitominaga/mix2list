@@ -2,8 +2,8 @@ import { useEffect, useRef, useState, useCallback } from "react";
 import "./styles.css";
 import "./screens/screens.css";
 
-import type { AnalysisResult, Screen, VideoInfo } from "./types";
-import { Home } from "./screens/Home";
+import type { AnalysisResult, Screen, Track, VideoInfo } from "./types";
+import { Home, HomeBackdrop } from "./screens/Home";
 import { Preview } from "./screens/Preview";
 import { Analyzing, type AnalyzePhase } from "./screens/Analyzing";
 import { Result } from "./screens/Result";
@@ -14,7 +14,7 @@ import { fetchVideoInfo } from "./services/youtube";
 import { analyzeVideo } from "./services/gemini";
 import { harmonicReorder } from "./services/reorder";
 import { beginLogin, completeLogin, loadTokens, clearTokens, getValidAccessToken } from "./services/spotifyAuth";
-import { getCurrentUser, matchTracks, createPlaylist, addTracks, setPlaylistCoverFromUrl } from "./services/spotify";
+import { getCurrentUser, matchTracks, createPlaylist, addTracks, setPlaylistCoverFromUrl, fetchRandomAlbumArt } from "./services/spotify";
 
 interface SnackState {
   show: boolean; message: string; loading?: boolean; ready?: boolean;
@@ -26,10 +26,12 @@ export default function App() {
   const [screen, setScreen] = useState<Screen>("home");
   const [video, setVideo] = useState<VideoInfo | null>(null);
   const [analysis, setAnalysis] = useState<AnalysisResult | null>(null);
+  const [liveTracks, setLiveTracks] = useState<Track[] | null>(null);
   const [phase, setPhase] = useState<AnalyzePhase>("analyzing");
   const [isAuthed, setIsAuthed] = useState(false);
   const [generating, setGenerating] = useState(false);
   const [snack, setSnack] = useState<SnackState>({ show: false, message: "" });
+  const [crateArt, setCrateArt] = useState<string[]>([]);
 
   const showSnack = useCallback((s: Omit<SnackState, "show">) => setSnack({ ...s, show: true }), []);
   const hideSnack = useCallback(() => setSnack((s) => ({ ...s, show: false })), []);
@@ -68,6 +70,25 @@ export default function App() {
       .catch(() => {});
   }, [screen, analysis, isAuthed]);
 
+  // Home has its own full-screen backdrop video; drop the html/body canvas
+  // background there so nothing sits behind it.
+  useEffect(() => {
+    document.documentElement.classList.toggle("m2l-home", screen === "home");
+  }, [screen]);
+
+  // Prefetch real album art for the analyzing-screen crate animation as soon
+  // as we're connected — starting from the Home screen, well before the
+  // user even submits a URL, so it's already sitting ready by the time the
+  // analyzing screen shows up instead of racing a fetch against it.
+  const crateArtFetched = useRef(false);
+  useEffect(() => {
+    if (!isAuthed || crateArtFetched.current) return;
+    crateArtFetched.current = true;
+    fetchRandomAlbumArt()
+      .then(setCrateArt)
+      .catch((e) => console.warn("[crate] prefetch failed:", e));
+  }, [isAuthed]);
+
   function persistState(v: VideoInfo | null, a: AnalysisResult | null) {
     if (v && a) sessionStorage.setItem("m2l.work", JSON.stringify({ v, a }));
   }
@@ -91,9 +112,11 @@ export default function App() {
   const handleAnalyze = useCallback(async () => {
     if (!video) return;
     artFetched.current = false;
+    setLiveTracks(null);
     setScreen("analyzing"); setPhase("analyzing");
     try {
       const result = await analyzeVideo(video.url);
+      setLiveTracks(result.tracks);
       setPhase("found");
       await new Promise((r) => setTimeout(r, 700));
       setPhase("ordering");
@@ -152,6 +175,8 @@ export default function App() {
 
   return (
     <>
+      {screen === "home" && <HomeBackdrop />}
+
       <div className="topbar">
         <div className="top">
           {screen === "home" ? <span /> : (
@@ -178,10 +203,15 @@ export default function App() {
         </div>
       </div>
 
-      <div className="app-shell">
+      <div className={`app-shell${screen === "preview" || screen === "analyzing" ? " app-shell--center" : ""}`}>
       {screen === "home" && <Home onSubmit={handleUrl} />}
       {screen === "preview" && video && <Preview video={video} onAnalyze={handleAnalyze} />}
-      {screen === "analyzing" && <Analyzing phase={phase} foundCount={analysis?.tracks.length} />}
+      {screen === "analyzing" && (
+        <Analyzing
+          phase={phase} foundCount={liveTracks?.length} tracks={liveTracks ?? undefined}
+          isAuthed={isAuthed} prefetchedArt={crateArt}
+        />
+      )}
       {screen === "result" && video && analysis && (
         <Result video={video} analysis={analysis} isAuthed={isAuthed} generating={generating}
           onGenerate={handleGenerate} onConnectSpotify={handleConnectSpotify} />

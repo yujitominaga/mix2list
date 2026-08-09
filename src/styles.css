@@ -51,11 +51,21 @@
 html, body, #root {
   margin: 0;
   min-height: 100%;
-  background: var(--bg);
   color: var(--tx);
   font-family: var(--font-body);
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
+}
+/* Only html/body — their background propagates to the full canvas by spec.
+   #root must stay transparent, or its own (content-height-bounded) box
+   paints over the fixed, negative-z-index home background video. */
+html, body {
+  background: var(--bg);
+}
+/* On the Home screen the canvas background is turned off entirely (see
+   App.tsx toggling this class) so nothing sits behind the backdrop video. */
+html.m2l-home, html.m2l-home body {
+  background: transparent;
 }
 
 ::selection { background: rgba(168, 155, 255, 0.28); }
@@ -83,6 +93,13 @@ a { color: inherit; }
   padding: 0 32px 120px;
   position: relative;
   z-index: 1;
+}
+.app-shell--center {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  min-height: calc(100dvh - 80px);
+  padding-bottom: 32px;
 }
 
 /* ---- top bar — full browser width, content stays at --maxw inside it ---- */
@@ -246,6 +263,7 @@ a { color: inherit; }
 
 @media (max-width: 600px) {
   .app-shell { padding: 20px 18px 100px; }
+  .app-shell--center { padding-bottom: 20px; }
 }
 
 @media (prefers-reduced-motion: reduce) {
