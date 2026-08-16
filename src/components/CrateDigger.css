@@ -1,11 +1,24 @@
 .crate {
   position: relative;
-  width: 100%;
+  /* full-bleed to the browser window, not just .app-shell's ~940px column —
+     otherwise most of a wide arc gets clipped by this container's own
+     bounds before the mask-image edge-fade ever gets a chance to apply.
+     Works because every ancestor between here and the viewport is centered
+     (margin:0 auto) with no side offset, so this is the standard
+     "break out of a centered column" trick. */
+  width: 100vw;
+  margin-left: calc(50% - 50vw);
+  /* .analyzing is a flex column with align-items:center — without this,
+     flex's own cross-axis centering (based on this item's now-100vw size
+     vs. its much narrower flex container) piles an extra offset on top of
+     the margin trick above, so the two fight and the crate lands off-center. */
+  align-self: flex-start;
   height: 340px;
   display: flex;
   align-items: center;
   justify-content: center;
-  perspective: 1400px;
+  perspective: 1000px;
+  transform-style: preserve-3d;
   overflow: hidden;
   /* fade to the surrounding dark instead of a hard clip at the edges */
   mask-image: linear-gradient(to right, transparent 0%, black 14%, black 86%, transparent 100%);

@@ -4,7 +4,7 @@
   display: flex;
   flex-direction: column;
   justify-content: center;
-  max-width: 720px;
+  max-width: 860px;
   margin: 0 auto;
   padding-top: 6vh;
 }
@@ -77,29 +77,33 @@
   line-height: 0.92;
   letter-spacing: -0.045em;
   margin: 0 0 32px;
+  text-align: center;
 }
 .home-wordmark .m2 { color: var(--tx); }
-.home-wordmark .list { color: var(--tx-45); }
+.home-wordmark .list { color: var(--tx-70); }
 
 .home-tagline {
   font-size: 17px;
   line-height: 1.65;
-  color: var(--tx-70);
+  color: var(--tx);
   max-width: 44ch;
-  margin: 0 0 52px;
+  margin: 0 auto 52px;
   font-weight: 400;
+  text-align: center;
 }
 
 .url-field {
   display: flex;
   align-items: center;
   gap: 16px;
-  border-bottom: 1px solid var(--tx-14);
+  border-bottom: 1px solid var(--tx-28);
   padding-bottom: 14px;
-  max-width: 620px;
+  width: 100%;
+  max-width: 640px;
+  margin: 0 auto;
   transition: border-color 0.3s var(--ease);
 }
-.url-field:focus-within { border-color: var(--tx-45); }
+.url-field:focus-within { border-color: var(--tx-70); }
 .url-input {
   flex: 1;
   background: none;
@@ -109,7 +113,7 @@
   padding: 4px 0;
   letter-spacing: 0.01em;
 }
-.url-input::placeholder { color: var(--tx-28); }
+.url-input::placeholder { color: var(--tx-45); }
 .url-input:focus { outline: none; }
 
 .url-submit {
@@ -136,14 +140,18 @@
   font-size: 13px;
   margin-top: 14px;
   letter-spacing: 0.01em;
+  text-align: center;
 }
 
 .config-note {
   margin-top: 40px;
   font-size: 12.5px;
   line-height: 1.7;
-  color: var(--tx-45);
+  color: var(--tx-70);
   max-width: 560px;
+  margin-left: auto;
+  margin-right: auto;
+  text-align: center;
 }
 .config-note code {
   font-family: var(--font-mono);
@@ -152,8 +160,29 @@
 }
 
 /* ================= PREVIEW ================= */
-.preview { padding-top: 0; }
-.app-shell--center .preview { width: 100%; }
+/* full window glass panel — video stays visible underneath, blurred.
+   Lighter tint + a soft top-left sheen + an inset top highlight line, so it
+   reads as bright frosted glass catching light rather than a flat dark
+   blur over the video. */
+.preview {
+  position: fixed;
+  inset: 0;
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background:
+    radial-gradient(120% 60% at 28% -8%, rgba(255, 255, 255, 0.14), transparent 60%),
+    rgba(32, 32, 37, 0.22);
+  backdrop-filter: blur(26px) saturate(1.7) brightness(1.12);
+  -webkit-backdrop-filter: blur(26px) saturate(1.7) brightness(1.12);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.16);
+}
+.preview-inner {
+  width: 100%;
+  max-width: 720px;
+  padding: 32px;
+}
 .preview-frame {
   position: relative;
   display: block;
@@ -222,32 +251,21 @@
 .analyzing {
   display: flex;
   flex-direction: column;
+  align-items: center;
   justify-content: center;
+  /* balances the fixed .analyzing-process bar's height at the bottom, so
+     the crate reads as centered in the *remaining* space, not the raw
+     viewport (which would sit visually low against the bar). */
+  padding-bottom: 64px;
 }
-
-/* full browser width, pinned to the bottom of the window — not just the
-   --maxw content column (same idea as .topbar) */
-.analyzing-status {
-  position: fixed;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  z-index: 5;
-  display: flex;
-  align-items: baseline;
-  justify-content: space-between;
-  gap: 20px;
-  padding: 20px 32px;
-  background: color-mix(in srgb, var(--bg) 85%, transparent);
-  backdrop-filter: blur(10px);
+.analyzing-label {
+  margin-top: 30px;
   font-family: var(--font-mono);
   font-size: 12.5px;
-  letter-spacing: 0.04em;
-}
-.astatus-label {
-  color: var(--go);
+  letter-spacing: 0.06em;
   text-transform: uppercase;
-  white-space: nowrap;
+  color: var(--go);
+  text-align: center;
 }
 .astatus-dots::after {
   content: "...";
@@ -261,17 +279,54 @@
   from { width: 0; }
   to { width: 1.3em; }
 }
-.astatus-step {
-  color: var(--tx-45);
-  text-align: right;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
+
+/* full browser width, pinned to the bottom of the window — not just the
+   --maxw content column (same idea as .topbar) */
+.analyzing-process {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 5;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 14px;
+  padding: 22px 32px;
+  background: color-mix(in srgb, var(--bg) 85%, transparent);
+  backdrop-filter: blur(10px);
 }
+.aproc-step {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-family: var(--font-body);
+  font-size: 13.5px;
+  letter-spacing: 0.005em;
+  color: var(--tx-28);
+  white-space: nowrap;
+  transition: color 0.4s var(--ease);
+}
+.aproc-step.done { color: var(--tx-45); }
+.aproc-step.active { color: var(--tx); font-weight: 500; }
+.aproc-num {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--tx-28);
+  transition: color 0.4s var(--ease);
+}
+.aproc-step.active .aproc-num { color: var(--go); }
+.aproc-count {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--go);
+}
+.aproc-sep { color: var(--tx-14); font-size: 13px; }
 
 @media (max-width: 640px) {
-  .analyzing-status { flex-direction: column; align-items: flex-start; gap: 6px; }
-  .astatus-step { text-align: left; }
+  .analyzing-process { gap: 10px; }
+  .aproc-step { font-size: 12px; }
 }
 
 /* ================= RESULT ================= */

@@ -34,7 +34,6 @@ const DICT: Dict = {
   "analyzing.step1": { en: "Analyzing audio and tracklist", ja: "音声とトラックリストを解析中" },
   "analyzing.step2": { en: "Collecting detected tracks", ja: "検出したトラックを収集中" },
   "analyzing.step3": { en: "Reordering harmonically", ja: "ハーモニックに並べ替え中" },
-  "analyzing.found": { en: "found", ja: "曲検出" },
   "analyzing.status": { en: "Analyzing", ja: "解析中" },
 
   "result.generate": { en: "Generate playlist", ja: "プレイリストを作成" },

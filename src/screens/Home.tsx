@@ -1,7 +1,10 @@
 import { useEffect, useRef, useState } from "react";
+import { motion } from "motion/react";
+import { MagneticButton } from "../components/MagneticButton";
 import { extractVideoId } from "../services/youtube";
 import { assertConfigured } from "../services/config";
 import { useI18n } from "../i18n";
+import { EASE, revealUp } from "../lib/motion";
 
 /** Full-screen looping backdrop with a rough analog treatment: RGB channel
  * split (SVG filter), scanlines, film grain, and a vignette/scrim so the
@@ -15,6 +18,8 @@ export function HomeBackdrop() {
     const reduce = window.matchMedia?.("(prefers-reduced-motion: reduce)").matches;
     if (reduce) videoRef.current?.pause();
   }, []);
+
+  const fade = { initial: { opacity: 0 }, animate: { opacity: 1 }, exit: { opacity: 0 } };
 
   return (
     <>
@@ -32,7 +37,12 @@ export function HomeBackdrop() {
           <feBlend in="rg" in2="b-off" mode="screen" />
         </filter>
       </svg>
-      <video
+      {/* leaving Home/Preview: a slow fade + gentle zoom-out. (Used to
+          animate a CSS-var-driven blur() here too, but combining that with
+          the chroma-aberration SVG filter's default filter region shifted
+          the rendered video vertically as the blur radius grew — simpler
+          fade+scale avoids touching `filter` at all.) */}
+      <motion.video
         ref={videoRef}
         className="home-bgvideo"
         src={`${import.meta.env.BASE_URL}dj-play-03.mp4`}
@@ -42,11 +52,15 @@ export function HomeBackdrop() {
         playsInline
         disablePictureInPicture
         aria-hidden
+        initial={{ opacity: 0, scale: 1.05 }}
+        animate={{ opacity: 1, scale: 1 }}
+        exit={{ opacity: 0, scale: 1.08 }}
+        transition={{ duration: 1.1, ease: EASE }}
       />
-      <div className="home-bg-vignette" aria-hidden />
-      <div className="home-bg-scan" aria-hidden />
-      <div className="home-bg-grain" aria-hidden />
-      <div className="home-bg-scrim" aria-hidden />
+      <motion.div className="home-bg-vignette" aria-hidden {...fade} transition={{ duration: 1, ease: EASE }} />
+      <motion.div className="home-bg-scan" aria-hidden {...fade} transition={{ duration: 1, ease: EASE }} />
+      <motion.div className="home-bg-grain" aria-hidden {...fade} transition={{ duration: 1, ease: EASE }} />
+      <motion.div className="home-bg-scrim" aria-hidden {...fade} transition={{ duration: 1, ease: EASE }} />
     </>
   );
 }
@@ -63,8 +77,16 @@ export function Home({ onSubmit }: { onSubmit: (url: string) => void }) {
     onSubmit(url);
   }
 
+  // The whole hero (title + tagline + form) reveals as one section, not as
+  // separately staggered micro-elements.
+  const section = revealUp(24, 0.9, 0);
+
   return (
-    <div className="home">
+    <motion.div
+      className="home"
+      initial={section.initial} animate={section.animate} exit={section.exit}
+      transition={section.transition}
+    >
       <h1 className="home-wordmark">
         <span className="m2">mix2</span><span className="list">list</span>
       </h1>
@@ -81,10 +103,10 @@ export function Home({ onSubmit }: { onSubmit: (url: string) => void }) {
           onKeyDown={(e) => e.key === "Enter" && submit()}
           aria-label="YouTube URL"
         />
-        <button className="url-submit" onClick={submit} disabled={!url.trim()}>
+        <MagneticButton className="url-submit" onClick={submit} disabled={!url.trim()}>
           {t("home.analyze")}
           <span className="arw" aria-hidden>→</span>
-        </button>
+        </MagneticButton>
       </div>
       {error && <div className="field-error">{error}</div>}
 
@@ -94,6 +116,6 @@ export function Home({ onSubmit }: { onSubmit: (url: string) => void }) {
           <br />{t("home.missingHint")}
         </p>
       )}
-    </div>
+    </motion.div>
   );
 }

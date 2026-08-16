@@ -62,9 +62,10 @@ html, body, #root {
 html, body {
   background: var(--bg);
 }
-/* On the Home screen the canvas background is turned off entirely (see
-   App.tsx toggling this class) so nothing sits behind the backdrop video. */
-html.m2l-home, html.m2l-home body {
+/* While the backdrop video shows (Home + Preview — see App.tsx toggling
+   this class) the canvas background is turned off entirely so nothing
+   opaque sits behind it. */
+html.m2l-video-bg, html.m2l-video-bg body {
   background: transparent;
 }
 
@@ -78,8 +79,11 @@ h1, h2, h3 {
 }
 
 button { font-family: inherit; cursor: pointer; border: none; background: none; color: inherit; }
-input { font-family: inherit; }
-a { color: inherit; }
+/* Explicit (not relying on UA cursor defaults): GlitchOverlay sets
+   `cursor: none` ambiently on html/body, and an inherited `none` on an
+   element with no cursor of its own would suppress those defaults. */
+input { font-family: inherit; cursor: text; }
+a, [role="button"] { color: inherit; cursor: pointer; }
 
 :focus-visible {
   outline: 1.5px solid var(--violet);
@@ -93,12 +97,18 @@ a { color: inherit; }
   padding: 0 32px 120px;
   position: relative;
   z-index: 1;
+  /* Always at least a full viewport tall, regardless of which screen is
+     mounted. Preview's panel is position:fixed and so contributes zero
+     height to normal flow — without this, the document collapses to just
+     app-shell's padding while Preview is showing, and whatever briefly
+     shows through below that short document (e.g. html's reappearing
+     background mid-transition) reads as a stray band across the page. */
+  min-height: calc(100dvh - 80px);
 }
 .app-shell--center {
   display: flex;
   flex-direction: column;
   justify-content: center;
-  min-height: calc(100dvh - 80px);
   padding-bottom: 32px;
 }
 
@@ -106,6 +116,11 @@ a { color: inherit; }
 .topbar {
   width: 100%;
   padding: 32px 32px 0;
+  /* own stacking context above .app-shell's (z-index:1), so full-viewport
+     fixed panels rendered inside app-shell (e.g. Preview's glass panel)
+     can never paint over the Back/lang/connect controls here. */
+  position: relative;
+  z-index: 2;
 }
 .top {
   display: flex;

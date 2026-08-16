@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState, useCallback } from "react";
+import { AnimatePresence } from "motion/react";
 import "./styles.css";
 import "./screens/screens.css";
 
@@ -8,13 +9,14 @@ import { Preview } from "./screens/Preview";
 import { Analyzing, type AnalyzePhase } from "./screens/Analyzing";
 import { Result } from "./screens/Result";
 import { Snackbar } from "./components/Snackbar";
+import { GlitchOverlay } from "./components/GlitchOverlay";
 import { useI18n } from "./i18n";
 
 import { fetchVideoInfo } from "./services/youtube";
 import { analyzeVideo } from "./services/gemini";
 import { harmonicReorder } from "./services/reorder";
 import { beginLogin, completeLogin, loadTokens, clearTokens, getValidAccessToken } from "./services/spotifyAuth";
-import { getCurrentUser, matchTracks, createPlaylist, addTracks, setPlaylistCoverFromUrl, fetchRandomAlbumArt } from "./services/spotify";
+import { matchTracks, createPlaylist, addTracks, setPlaylistCoverFromUrl, fetchRandomAlbumArt } from "./services/spotify";
 
 interface SnackState {
   show: boolean; message: string; loading?: boolean; ready?: boolean;
@@ -24,6 +26,11 @@ interface SnackState {
 export default function App() {
   const { t, lang, setLang } = useI18n();
   const [screen, setScreen] = useState<Screen>("home");
+  // Mirrors `screen === "analyzing"`, but only flips once the *previous*
+  // screen has fully finished exiting (see onExitComplete below) — flipping
+  // it immediately made the still-fading-out screen jump/reflow mid-exit,
+  // since .app-shell--center changes the flex layout everything sits in.
+  const [shellCenter, setShellCenter] = useState(false);
   const [video, setVideo] = useState<VideoInfo | null>(null);
   const [analysis, setAnalysis] = useState<AnalysisResult | null>(null);
   const [liveTracks, setLiveTracks] = useState<Track[] | null>(null);
@@ -32,6 +39,11 @@ export default function App() {
   const [generating, setGenerating] = useState(false);
   const [snack, setSnack] = useState<SnackState>({ show: false, message: "" });
   const [crateArt, setCrateArt] = useState<string[]>([]);
+  const [cursorEnabled] = useState(
+    () =>
+      (window.matchMedia?.("(pointer: fine)").matches ?? false) &&
+      !(window.matchMedia?.("(prefers-reduced-motion: reduce)").matches ?? false)
+  );
 
   const showSnack = useCallback((s: Omit<SnackState, "show">) => setSnack({ ...s, show: true }), []);
   const hideSnack = useCallback(() => setSnack((s) => ({ ...s, show: false })), []);
@@ -70,11 +82,13 @@ export default function App() {
       .catch(() => {});
   }, [screen, analysis, isAuthed]);
 
-  // Home has its own full-screen backdrop video; drop the html/body canvas
-  // background there so nothing sits behind it.
+  // Home and Preview share the full-screen backdrop video (it persists
+  // across that transition); drop the html/body canvas background while
+  // either is showing so nothing opaque sits between it and the page.
+  const showVideoBg = screen === "home" || screen === "preview";
   useEffect(() => {
-    document.documentElement.classList.toggle("m2l-home", screen === "home");
-  }, [screen]);
+    document.documentElement.classList.toggle("m2l-video-bg", showVideoBg);
+  }, [showVideoBg]);
 
   // Prefetch real album art for the analyzing-screen crate animation as soon
   // as we're connected — starting from the Home screen, well before the
@@ -144,7 +158,6 @@ export default function App() {
         showSnack({ message: t("snack.loginFirst") });
         setGenerating(false); return;
       }
-      const user = await getCurrentUser();
       showSnack({ message: t("snack.searching"), loading: true });
       const matched = await matchTracks(analysis.tracks);
       const uris = matched.filter((x) => x.spotifyUri).map((x) => x.spotifyUri!);
@@ -154,7 +167,7 @@ export default function App() {
 
       showSnack({ message: t("snack.creating"), loading: true });
       const desc = `From "${video.title}" by ${video.channel} — mix2list`;
-      const playlistId = await createPlaylist(user.id, video.title, desc, false);
+      const playlistId = await createPlaylist(video.title, desc, false);
       await addTracks(playlistId, uris);
       setPlaylistCoverFromUrl(playlistId, video.thumbnail).catch(() => {});
 
@@ -175,7 +188,8 @@ export default function App() {
 
   return (
     <>
-      {screen === "home" && <HomeBackdrop />}
+      {cursorEnabled && <GlitchOverlay />}
+      <AnimatePresence>{showVideoBg && <HomeBackdrop key="home-bg" />}</AnimatePresence>
 
       <div className="topbar">
         <div className="top">
@@ -203,19 +217,22 @@ export default function App() {
         </div>
       </div>
 
-      <div className={`app-shell${screen === "preview" || screen === "analyzing" ? " app-shell--center" : ""}`}>
-      {screen === "home" && <Home onSubmit={handleUrl} />}
-      {screen === "preview" && video && <Preview video={video} onAnalyze={handleAnalyze} />}
-      {screen === "analyzing" && (
-        <Analyzing
-          phase={phase} foundCount={liveTracks?.length} tracks={liveTracks ?? undefined}
-          isAuthed={isAuthed} prefetchedArt={crateArt}
-        />
-      )}
-      {screen === "result" && video && analysis && (
-        <Result video={video} analysis={analysis} isAuthed={isAuthed} generating={generating}
-          onGenerate={handleGenerate} onConnectSpotify={handleConnectSpotify} />
-      )}
+      <div className={`app-shell${shellCenter ? " app-shell--center" : ""}`}>
+      <AnimatePresence mode="wait" onExitComplete={() => setShellCenter(screen === "analyzing")}>
+        {screen === "home" && <Home key="home" onSubmit={handleUrl} />}
+        {screen === "preview" && video && <Preview key="preview" video={video} onAnalyze={handleAnalyze} />}
+        {screen === "analyzing" && (
+          <Analyzing
+            key="analyzing"
+            phase={phase} foundCount={liveTracks?.length} tracks={liveTracks ?? undefined}
+            isAuthed={isAuthed} prefetchedArt={crateArt}
+          />
+        )}
+        {screen === "result" && video && analysis && (
+          <Result key="result" video={video} analysis={analysis} isAuthed={isAuthed} generating={generating}
+            onGenerate={handleGenerate} onConnectSpotify={handleConnectSpotify} />
+        )}
+      </AnimatePresence>
 
       <Snackbar show={snack.show} message={snack.message} loading={snack.loading}
         ready={snack.ready} actionLabel={snack.actionLabel} onAction={snack.onAction} />

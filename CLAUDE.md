@@ -57,6 +57,13 @@ automatically over the Inter fallback — no other change needed.
   recommendations. The value we add is ordering, not applying transitions.
 - Spotify audio-features endpoint is retired for new apps — that's why BPM/key
   come from Gemini, not Spotify.
+- Spotify's Feb 2026 Web API migration (cutoff 2026-03-09) retired
+  `POST /users/{user_id}/playlists` and `POST /playlists/{id}/tracks` for
+  Development Mode apps — 403 Forbidden on both. Use `POST /me/playlists`
+  (no user-id lookup needed) and `POST /playlists/{id}/items` instead —
+  already updated in `spotify.ts`. If a 403 shows up again on a playlist
+  write call, check Spotify's changelog for a newer breaking migration
+  before assuming it's an auth/scope bug.
 
 ## Credentials
 

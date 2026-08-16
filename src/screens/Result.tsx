@@ -1,8 +1,18 @@
 import { useEffect, useRef, useState } from "react";
+import { motion } from "motion/react";
 import type { AnalysisResult, VideoInfo } from "../types";
 import { TrackRow } from "../components/TrackRow";
 import { MixSettingsBar } from "../components/MixSettingsBar";
+import { MagneticButton } from "../components/MagneticButton";
+import { CountUp } from "../components/CountUp";
 import { useI18n } from "../i18n";
+import { EASE, revealUpVariants } from "../lib/motion";
+
+const listVariants = {
+  hidden: {},
+  visible: { transition: { staggerChildren: 0.05, delayChildren: 0.1 } },
+};
+const rowVariants = revealUpVariants(24, 0.6);
 
 interface Props {
   video: VideoInfo;
@@ -34,15 +44,21 @@ export function Result({ video, analysis, isAuthed, generating, onGenerate, onCo
     : t("result.confMed");
 
   const primaryBtn = isAuthed ? (
-    <button className="btn btn-primary" onClick={onGenerate} disabled={generating}>
+    <MagneticButton className="btn btn-primary" onClick={onGenerate} disabled={generating}>
       {generating ? t("result.generating") : t("result.generate")}
-    </button>
+    </MagneticButton>
   ) : (
-    <button className="btn btn-outline" onClick={onConnectSpotify}>{t("result.connectFirst")}</button>
+    <MagneticButton className="btn btn-outline" onClick={onConnectSpotify}>{t("result.connectFirst")}</MagneticButton>
   );
 
   return (
-    <div className="result">
+    <motion.div
+      className="result"
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
+      transition={{ duration: 0.4, ease: EASE }}
+    >
       <div className={`result-sticky${stuck ? " show" : ""}`}>
         <img src={video.thumbnail} alt="" onError={(e) => (e.currentTarget.style.visibility = "hidden")} />
         <span className="rs-title">{video.title}</span>
@@ -66,9 +82,9 @@ export function Result({ video, analysis, isAuthed, generating, onGenerate, onCo
           <p className="result-eyebrow">{video.channel}</p>
           <h1 className="result-vtitle">{video.title}</h1>
           <div className="result-meta">
-            <span className="mono">{analysis.tracks.length}</span>
+            <span className="mono"><CountUp value={analysis.tracks.length} /></span>
             <span>{t("result.songs")}</span>
-            {totalMin > 0 && <><span className="dot-sep" /><span className="mono">{totalMin}</span><span>min</span></>}
+            {totalMin > 0 && <><span className="dot-sep" /><span className="mono"><CountUp value={totalMin} /></span><span>min</span></>}
             <span className="dot-sep" /><span>{conf}</span>
           </div>
           {primaryBtn}
@@ -85,15 +101,17 @@ export function Result({ video, analysis, isAuthed, generating, onGenerate, onCo
           <span className="c-time r">{t("col.time")}</span>
         </div>
 
-        {analysis.tracks.map((track) => (
-          <div key={track.id}>
-            <TrackRow track={track} />
-            {track.mix && <MixSettingsBar mix={track.mix} />}
-          </div>
-        ))}
+        <motion.div variants={listVariants} initial="hidden" animate="visible">
+          {analysis.tracks.map((track) => (
+            <motion.div key={track.id} variants={rowVariants}>
+              <TrackRow track={track} />
+              {track.mix && <MixSettingsBar mix={track.mix} />}
+            </motion.div>
+          ))}
+        </motion.div>
 
         <p className="tl-legend">{t("result.coverNote")} {t("result.estNote")}</p>
       </div>
-    </div>
+    </motion.div>
   );
 }

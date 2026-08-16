@@ -1,0 +1,19 @@
+#m2l-glitch-canvas {
+  position: fixed;
+  inset: 0;
+  z-index: 10000;
+  pointer-events: none;
+  display: block;
+}
+
+/* Ambient state (cursor away from any clickable element): hide the native
+   pointer entirely so the glitch patch itself reads as the only cursor
+   feedback. `button`/`a`/`[role="button"]` set their own `cursor` below,
+   which — being an explicit declaration, not an inherited one — always wins
+   over this regardless of ancestor state, so hovering something clickable
+   restores the normal arrow/pointer without any extra JS-driven class logic
+   on those elements themselves. */
+html.m2l-glitch-cursor-none,
+html.m2l-glitch-cursor-none body {
+  cursor: none;
+}

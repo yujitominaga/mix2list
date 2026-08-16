@@ -15,7 +15,11 @@ import type { AnalysisResult, Track, MixSettings } from "../types";
  */
 
 const SYSTEM_PROMPT = `You are a professional DJ and music analyst. You are given a YouTube DJ mix video.
-Identify each distinct track played, in order. Prefer any tracklist in the video description or pinned comment; use the audio to fill gaps and to verify.
+Identify each distinct track played, in order.
+
+Track identification priority (follow strictly, to keep results consistent across repeated runs on the same video):
+1. If the video description or a pinned/top comment contains an explicit tracklist, treat it as GROUND TRUTH. Output exactly those tracks — same count, same order, same titles/artists. Do not add, remove, merge, split, or reorder tracks based on your own audio judgment. Use the audio ONLY to fill in per-track startTimeSec/bpm/key that the text doesn't give you.
+2. Only when no tracklist exists in the text does audio-only identification apply. In that case, work through the ENTIRE video chronologically from 0:00 to the end, logging every distinct track transition you can hear — do not skip short or unfamiliar-sounding tracks, and do not stop early.
 
 For EACH track provide:
 - title, artist, album (album may be null if unknown)
@@ -64,8 +68,14 @@ function buildRequestBody(youtubeUrl: string) {
       },
     ],
     generationConfig: {
-      temperature: 0.2,
+      // As low as the API allows — this is a detection/extraction task, not
+      // a creative one, and run-to-run consistency on the same video matters
+      // more here than variety.
+      temperature: 0,
       responseMimeType: "application/json",
+      // Generous headroom for long mixes (20+ tracks, each with a mix-settings
+      // object) so the JSON never gets cut off mid-response.
+      maxOutputTokens: 8192,
     },
   };
 }
