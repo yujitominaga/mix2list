@@ -13,6 +13,11 @@
 // dip: a pronounced S — slow in, fast middle, settled finish.
 export const EASE = [0.76, 0, 0.14, 1] as const;
 
+// Quick start, long gentle settle — matches --ease-out in styles.css. For
+// reveals that should feel like they're drifting to rest rather than
+// snapping into place.
+export const EASE_OUT = [0.16, 1, 0.3, 1] as const;
+
 const REVEAL_TIMES = [0, 0.22, 0.55, 1];
 // held/slow start -> snap into the anticipation dip -> drastic acceleration
 // past the resting point -> settle back. (Plain bezier tuples rather than
@@ -56,13 +61,14 @@ export function revealUpVariants(distance = 24, duration = 0.7) {
 }
 
 /** Fade + scale reveal (no directional dip — a y-anticipation reads oddly
- * on a centered panel/card scaling in place). Still carries the signature
- * slow-in/fast-mid/settle shape via `EASE`. */
-export function revealScale(fromScale = 0.94, duration = 0.6, delay = 0) {
+ * on a centered panel/card scaling in place). A subtle scale delta and a
+ * long `EASE_OUT` tail so it drifts to rest rather than snapping — meant to
+ * read as soft, not as a zoom. */
+export function revealScale(fromScale = 0.985, duration = 1.2, delay = 0) {
   return {
     initial: { opacity: 0, scale: fromScale },
     animate: { opacity: 1, scale: 1 },
-    exit: { opacity: 0, scale: fromScale + 0.02 },
-    transition: { duration, delay, ease: EASE },
+    exit: { opacity: 0, scale: fromScale, transition: { duration: duration * 0.5, ease: EASE_OUT } },
+    transition: { duration, delay, ease: EASE_OUT },
   };
 }

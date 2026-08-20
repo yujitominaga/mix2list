@@ -17,7 +17,13 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  perspective: 1000px;
+  /* RADIUS(1150px) * (1-cos(80°)) ≈ 950px of depth at the outermost slots —
+     with a 1000px perspective that was nearly the whole camera distance,
+     so edge tiles sat right on top of the vanishing point and warped
+     badly. A much longer perspective keeps that same depth range a small
+     fraction of the total distance, so the arc reads as a wide, gentle
+     drum turning around a far-off axis instead of a tight fisheye fan. */
+  perspective: 2800px;
   transform-style: preserve-3d;
   overflow: hidden;
   /* fade to the surrounding dark instead of a hard clip at the edges */

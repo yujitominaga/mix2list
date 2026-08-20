@@ -49,6 +49,8 @@ const DICT: Dict = {
   },
   "result.unmatched": { en: "unmatched", ja: "未一致" },
   "result.coverNote": { en: "Cover uses the video thumbnail.", ja: "カバーは動画のサムネイルを使用します。" },
+  "result.play": { en: "Play preview", ja: "プレビュー再生" },
+  "result.pause": { en: "Pause preview", ja: "一時停止" },
 
   "col.title": { en: "Title", ja: "タイトル" },
   "col.bpm": { en: "BPM", ja: "BPM" },

@@ -439,6 +439,7 @@
 .trow:hover::after { opacity: 1; }
 
 .trow-idx { font-family: var(--font-mono); font-size: 13px; color: var(--tx-28); }
+.trow-art-wrap { position: relative; width: 32px; height: 32px; }
 .trow-art {
   width: 32px; height: 32px;
   border-radius: 3px;
@@ -446,6 +447,30 @@
   background: var(--surface-2);
 }
 .trow-art-empty { border: 1px solid var(--tx-14); }
+
+/* Track preview (Spotify embed) — reads as the same "hover reveals a
+   control over the art" pattern as Spotify's own web player. */
+.trow-play {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 10px;
+  color: var(--tx);
+  background: rgba(10, 10, 12, 0.55);
+  backdrop-filter: blur(2px);
+  border-radius: 3px;
+  opacity: 0;
+  transition: opacity 0.18s var(--ease), background 0.18s var(--ease);
+}
+.trow:hover .trow-play, .trow-play.is-playing { opacity: 1; }
+.trow-play:hover { background: rgba(10, 10, 12, 0.75); }
+.trow-play.is-playing { color: var(--go); }
+/* Touch devices have no hover — the control has to just be there. */
+@media (hover: none) {
+  .trow-play { opacity: 1; background: rgba(10, 10, 12, 0.4); }
+}
 .trow-main { min-width: 0; }
 .trow-title {
   font-size: 15px;
@@ -499,7 +524,7 @@
 @media (max-width: 640px) {
   .tl-head, .trow { grid-template-columns: 24px 28px 1fr 48px 44px; gap: 12px; }
   .tl-head .c-time, .trow-time { display: none; }
-  .trow-art { width: 28px; height: 28px; }
+  .trow-art-wrap, .trow-art { width: 28px; height: 28px; }
   .result-head { gap: 18px; }
   .result-thumb { width: 92px; height: 92px; }
   .mixrow { padding-left: 76px; }

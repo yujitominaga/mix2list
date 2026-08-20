@@ -5,6 +5,8 @@ import "./GlitchOverlay.css";
 const INTERACTIVE = 'a, button, [role="button"], input, .url-field';
 
 // Fixed per spec — not exposed as UI controls in the shipped app.
+// `radius` is the base size; each burst rolls its own -20%/+25% size and
+// horizontal-elongation multiplier (see burstRx/burstRy below).
 const P = { radius: 70, pixel: 10, rgb: 15, slice: 15, burst: 20 };
 
 const CAPTURE_INTERVAL_MS = 200;
@@ -170,10 +172,18 @@ export function GlitchOverlay() {
     window.addEventListener("pointerleave", onLeave);
 
     let burstUntil = 0;
+    // Rolled once per burst (not per frame) so a given flash reads as one
+    // consistently-sized event rather than jittering size frame to frame.
+    // -20% to +25% of the base radius, and elongated horizontally.
+    let burstRx = P.radius;
+    let burstRy = P.radius;
     let burstTimer: number | undefined;
     function scheduleNextBurst() {
       const gap = BURST_GAP_MIN_MS + Math.random() * (BURST_GAP_MAX_MS - BURST_GAP_MIN_MS);
       burstTimer = window.setTimeout(() => {
+        const sizeMult = 0.8 + Math.random() * 0.45;
+        burstRx = P.radius * sizeMult * 1.4;
+        burstRy = P.radius * sizeMult * 0.7;
         burstUntil = performance.now() + BURST_DURATION_MS;
         scheduleNextBurst();
       }, gap);
@@ -194,13 +204,14 @@ export function GlitchOverlay() {
       }
       if (!showGlitch || !bitmap) return;
 
-      const R = P.radius * DPR;
+      const Rx = burstRx * DPR;
+      const Ry = burstRy * DPR;
       const mx = mouse.x * DPR;
       const my = mouse.y * DPR;
-      const x0 = Math.max(0, mx - R);
-      const y0 = Math.max(0, my - R);
-      const x1 = Math.min(canvas!.width, Math.min(bitmap.width, mx + R));
-      const y1 = Math.min(canvas!.height, Math.min(bitmap.height, my + R));
+      const x0 = Math.max(0, mx - Rx);
+      const y0 = Math.max(0, my - Ry);
+      const x1 = Math.min(canvas!.width, Math.min(bitmap.width, mx + Rx));
+      const y1 = Math.min(canvas!.height, Math.min(bitmap.height, my + Ry));
       const rw = x1 - x0;
       const rh = y1 - y0;
       if (rw <= 0 || rh <= 0) return;
@@ -222,22 +233,22 @@ export function GlitchOverlay() {
       // detached stray ticks give it that torn-tape/interlaced-scan look
       // rather than a clean blob. Re-rolled every frame.
       const rowH = Math.max(2, px * 0.55) * DPR;
-      const rows = Math.max(6, Math.round((R * 2) / rowH));
+      const rows = Math.max(6, Math.round((Ry * 2) / rowH));
       ctx!.save();
       ctx!.beginPath();
       for (let i = 0; i < rows; i++) {
         const t = i / (rows - 1);
         const envelope = Math.sin(t * Math.PI); // 0 at top/bottom, 1 through the middle
-        const rowWidth = R * 1.7 * (0.12 + envelope * (0.4 + Math.random() * 0.6));
-        const jitterX = (Math.random() - 0.5) * R * 0.7;
-        const by = my - R + i * rowH;
+        const rowWidth = Rx * 1.7 * (0.12 + envelope * (0.4 + Math.random() * 0.6));
+        const jitterX = (Math.random() - 0.5) * Rx * 0.7;
+        const by = my - Ry + i * rowH;
         const bh = rowH * (0.35 + Math.random() * 0.85);
         const bx = mx - rowWidth / 2 + jitterX;
         ctx!.rect(bx, by, rowWidth, bh);
         // detached fragment flying off one side, like a stray scan tick
         if (Math.random() < 0.22) {
           const strayW = rowWidth * (0.12 + Math.random() * 0.3);
-          const gap = 6 * DPR + Math.random() * R * 0.3;
+          const gap = 6 * DPR + Math.random() * Rx * 0.3;
           const strayX = Math.random() < 0.5 ? bx - strayW - gap : bx + rowWidth + gap;
           ctx!.rect(strayX, by, strayW, bh * 0.7);
         }

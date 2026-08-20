@@ -5,6 +5,7 @@ import { TrackRow } from "../components/TrackRow";
 import { MixSettingsBar } from "../components/MixSettingsBar";
 import { MagneticButton } from "../components/MagneticButton";
 import { CountUp } from "../components/CountUp";
+import { onPreviewChange, togglePreview } from "../services/spotifyEmbed";
 import { useI18n } from "../i18n";
 import { EASE, revealUpVariants } from "../lib/motion";
 
@@ -27,6 +28,7 @@ export function Result({ video, analysis, isAuthed, generating, onGenerate, onCo
   const { t } = useI18n();
   const sentinel = useRef<HTMLDivElement>(null);
   const [stuck, setStuck] = useState(false);
+  const [playingUri, setPlayingUri] = useState<string | null>(null);
 
   useEffect(() => {
     const el = sentinel.current;
@@ -35,6 +37,8 @@ export function Result({ video, analysis, isAuthed, generating, onGenerate, onCo
     io.observe(el);
     return () => io.disconnect();
   }, []);
+
+  useEffect(() => onPreviewChange(setPlayingUri), []);
 
   const totalSec = analysis.tracks.reduce((s, x) => s + (x.lengthSec ?? 0), 0);
   const totalMin = Math.floor(totalSec / 60);
@@ -104,7 +108,11 @@ export function Result({ video, analysis, isAuthed, generating, onGenerate, onCo
         <motion.div variants={listVariants} initial="hidden" animate="visible">
           {analysis.tracks.map((track) => (
             <motion.div key={track.id} variants={rowVariants}>
-              <TrackRow track={track} />
+              <TrackRow
+                track={track}
+                isPlaying={!!track.spotifyUri && track.spotifyUri === playingUri}
+                onPreviewToggle={togglePreview}
+              />
               {track.mix && <MixSettingsBar mix={track.mix} />}
             </motion.div>
           ))}

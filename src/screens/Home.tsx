@@ -4,7 +4,7 @@ import { MagneticButton } from "../components/MagneticButton";
 import { extractVideoId } from "../services/youtube";
 import { assertConfigured } from "../services/config";
 import { useI18n } from "../i18n";
-import { EASE, revealUp } from "../lib/motion";
+import { EASE, revealScale } from "../lib/motion";
 
 /** Full-screen looping backdrop with a rough analog treatment: RGB channel
  * split (SVG filter), scanlines, film grain, and a vignette/scrim so the
@@ -37,11 +37,11 @@ export function HomeBackdrop() {
           <feBlend in="rg" in2="b-off" mode="screen" />
         </filter>
       </svg>
-      {/* leaving Home/Preview: a slow fade + gentle zoom-out. (Used to
-          animate a CSS-var-driven blur() here too, but combining that with
-          the chroma-aberration SVG filter's default filter region shifted
-          the rendered video vertically as the blur radius grew — simpler
-          fade+scale avoids touching `filter` at all.) */}
+      {/* Opacity-only — no scale/zoom. It persists across the Home<->Preview
+          transition (see App.tsx), so a zoom tied to its own mount used to
+          still be mid-flight by the time Preview's backdrop-filter blur
+          kicked in, reading as "the blurred backdrop is zooming in for
+          Preview" even though it was really just Home's entrance tail. */}
       <motion.video
         ref={videoRef}
         className="home-bgvideo"
@@ -52,9 +52,9 @@ export function HomeBackdrop() {
         playsInline
         disablePictureInPicture
         aria-hidden
-        initial={{ opacity: 0, scale: 1.05 }}
-        animate={{ opacity: 1, scale: 1 }}
-        exit={{ opacity: 0, scale: 1.08 }}
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        exit={{ opacity: 0 }}
         transition={{ duration: 1.1, ease: EASE }}
       />
       <motion.div className="home-bg-vignette" aria-hidden {...fade} transition={{ duration: 1, ease: EASE }} />
@@ -78,8 +78,9 @@ export function Home({ onSubmit }: { onSubmit: (url: string) => void }) {
   }
 
   // The whole hero (title + tagline + form) reveals as one section, not as
-  // separately staggered micro-elements.
-  const section = revealUp(24, 0.9, 0);
+  // separately staggered micro-elements. Same soft scale-in as Preview's
+  // panel, for a consistent entrance language between the two screens.
+  const section = revealScale();
 
   return (
     <motion.div

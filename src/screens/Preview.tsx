@@ -10,7 +10,7 @@ export function Preview({ video, onAnalyze }: { video: VideoInfo; onAnalyze: () 
   const { primary, fallback } = thumbnailWithFallback(video.videoId);
   // Thumbnail + title + description reveal together as one section, not as
   // separately staggered micro-elements.
-  const panel = revealScale(0.94, 0.6);
+  const panel = revealScale();
 
   return (
     <motion.div

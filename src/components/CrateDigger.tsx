@@ -26,17 +26,19 @@ const RADIUS = 1150; // px
 // than a machine advancing a belt.
 const REST_MIN_MS = 1300;
 const REST_MAX_MS = 2600;
-const SPIN_MIN = 3; // slots per flick
-const SPIN_MAX = 8;
+const SPIN_MIN = 5; // slots per flick
+const SPIN_MAX = 13;
 // Long, gentle decelerating tail (not a quick snap-then-stop) — most of the
 // duration is spent visibly slowing down, not sitting still near the end.
-const SPIN_EASE: [number, number, number, number] = [0.19, 1, 0.22, 1];
+// Pushed even flatter/earlier than a standard ease-out so the coast phase
+// itself reads as longer and softer.
+const SPIN_EASE: [number, number, number, number] = [0.11, 1, 0.15, 1];
 
 // Longer flicks (more slots) get proportionally more time — and the base
 // itself is generous, since a short duration is what made the coast read as
 // a sudden stop regardless of easing curve.
 function spinDuration(n: number): number {
-  return 1.3 + n * 0.16;
+  return 1.7 + n * 0.2;
 }
 
 function arcFor(pos: number) {

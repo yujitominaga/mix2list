@@ -16,16 +16,34 @@ function keyBadgeClass(key?: string): string {
   return m[1] === "B" ? "badge-amber" : "badge-violet";
 }
 
-export function TrackRow({ track }: { track: Track }) {
+interface Props {
+  track: Track;
+  isPlaying?: boolean;
+  onPreviewToggle?: (uri: string) => void;
+}
+
+export function TrackRow({ track, isPlaying, onPreviewToggle }: Props) {
   const { t } = useI18n();
   return (
     <div className="trow">
       <div className="trow-idx mono">{String(track.order).padStart(2, "0")}</div>
-      {track.albumArt ? (
-        <img className="trow-art" src={track.albumArt} alt="" />
-      ) : (
-        <div className="trow-art trow-art-empty" aria-hidden />
-      )}
+      <div className="trow-art-wrap">
+        {track.albumArt ? (
+          <img className="trow-art" src={track.albumArt} alt="" />
+        ) : (
+          <div className="trow-art trow-art-empty" aria-hidden />
+        )}
+        {track.spotifyUri && (
+          <button
+            type="button"
+            className={`trow-play${isPlaying ? " is-playing" : ""}`}
+            aria-label={isPlaying ? t("result.pause") : t("result.play")}
+            onClick={() => onPreviewToggle?.(track.spotifyUri!)}
+          >
+            {isPlaying ? "❚❚" : "▶"}
+          </button>
+        )}
+      </div>
       <div className="trow-main">
         <div className="trow-title">
           {track.title}
